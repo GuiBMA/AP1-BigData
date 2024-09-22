@@ -15,9 +15,13 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -127,7 +131,198 @@ class Ap1GerenciamentoCliTests {
         assertEquals("Paulo Silva", clienteSalvo.getNome());
         assertEquals("111.222.333-44", clienteSalvo.getCpf());
     }
+
+    @Test
+    void deveAtualizarClienteComSucesso() {
+        Cliente clienteExistente = new Cliente();
+        clienteExistente.setId(1);
+        clienteExistente.setNome("João Silva");
+        clienteExistente.setEmail("joao.silva@example.com");
+        clienteExistente.setCpf("111.222.333-44");
+        clienteExistente.setTelefone("(21) 91234-5678");
+        clienteExistente.setDataNascimento(LocalDate.of(1990, 5, 15));
+
+        Cliente clienteAtualizado = new Cliente();
+        clienteAtualizado.setNome("João Souza");
+        clienteAtualizado.setEmail("joao.souza@example.com");
+        clienteAtualizado.setCpf("111.222.333-44");
+        clienteAtualizado.setTelefone("(21) 98765-4321");
+        clienteAtualizado.setDataNascimento(LocalDate.of(1990, 5, 15));
+
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.of(clienteExistente));
+
+        when(clienteRepositorio.save(any(Cliente.class))).thenReturn(clienteExistente);
+
+        Cliente clienteSalvo = clienteServico.atualizarCliente(1, clienteAtualizado);
+
+        assertNotNull(clienteSalvo);
+        assertEquals("João Souza", clienteSalvo.getNome());
+        assertEquals("joao.souza@example.com", clienteSalvo.getEmail());
+        assertEquals("111.222.333-44", clienteSalvo.getCpf());
+        assertEquals("(21) 98765-4321", clienteSalvo.getTelefone());
+
+        verify(clienteRepositorio).save(clienteExistente);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoClienteNaoExistir() {
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            clienteServico.atualizarCliente(1, new Cliente());
+        });
+
+        assertEquals("Cliente com ID 1 não encontrado.", exception.getMessage());
+    }
     
+    @Test
+    void deveAdicionarEnderecoComSucesso() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1);
+        cliente.setNome("João Silva");
+        cliente.setEnderecos(new ArrayList<>());
+
+        Endereco novoEndereco = new Endereco();
+        novoEndereco.setRua("Rua Nova");
+        novoEndereco.setNumero("100");
+        novoEndereco.setBairro("Centro");
+        novoEndereco.setCidade("Rio de Janeiro");
+        novoEndereco.setEstado("RJ");
+        novoEndereco.setCep("20000-000");
+
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.of(cliente));
+
+        when(clienteRepositorio.save(any(Cliente.class))).thenReturn(cliente);
+
+        Cliente clienteAtualizado = clienteServico.adicionarEndereco(1, novoEndereco);
+
+        assertNotNull(clienteAtualizado);
+        assertEquals(1, clienteAtualizado.getEnderecos().size());
+        assertEquals("Rua Nova", clienteAtualizado.getEnderecos().get(0).getRua());
+
+        verify(clienteRepositorio).save(cliente);
+    }
+
+    @Test
+    void deveAtualizarEnderecoComSucesso() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1);
+
+        Endereco enderecoExistente = new Endereco();
+        enderecoExistente.setId(100);
+        enderecoExistente.setRua("Rua Antiga");
+        enderecoExistente.setNumero("50");
+        enderecoExistente.setBairro("Centro");
+        enderecoExistente.setCidade("São Paulo");
+        enderecoExistente.setEstado("SP");
+        enderecoExistente.setCep("12345-678");
+
+        cliente.setEnderecos(new ArrayList<>());
+        cliente.getEnderecos().add(enderecoExistente);
+
+        Endereco enderecoAtualizado = new Endereco();
+        enderecoAtualizado.setRua("Rua Atualizada");
+        enderecoAtualizado.setNumero("123");
+        enderecoAtualizado.setBairro("Novo Bairro");
+        enderecoAtualizado.setCidade("Rio de Janeiro");
+        enderecoAtualizado.setEstado("RJ");
+        enderecoAtualizado.setCep("98765-432");
+
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.of(cliente));
+
+        when(clienteRepositorio.save(any(Cliente.class))).thenReturn(cliente);
+
+        Cliente clienteAtualizado = clienteServico.atualizarEndereco(1, 100, enderecoAtualizado);
+
+        Endereco enderecoSalvo = clienteAtualizado.getEnderecos().get(0);
+        assertEquals("Rua Atualizada", enderecoSalvo.getRua());
+        assertEquals("123", enderecoSalvo.getNumero());
+        assertEquals("Novo Bairro", enderecoSalvo.getBairro());
+        assertEquals("Rio de Janeiro", enderecoSalvo.getCidade());
+        assertEquals("RJ", enderecoSalvo.getEstado());
+        assertEquals("98765-432", enderecoSalvo.getCep());
+
+        verify(clienteRepositorio).save(cliente);
+    }
+
+    @Test
+    void deveRemoverEnderecoComSucesso() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1);
+
+        Endereco enderecoExistente = new Endereco();
+        enderecoExistente.setId(100);
+        enderecoExistente.setRua("Rua Antiga");
+        cliente.setEnderecos(new ArrayList<>());
+        cliente.getEnderecos().add(enderecoExistente);
+
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.of(cliente));
+
+        when(clienteRepositorio.save(any(Cliente.class))).thenReturn(cliente);
+
+        Cliente clienteAtualizado = clienteServico.removerEndereco(1, 100);
+
+        assertTrue(clienteAtualizado.getEnderecos().isEmpty());
+
+        verify(clienteRepositorio).save(cliente);
+    }
+
+    @Test
+    void deveBuscarClienteComSeusEnderecos() {
+        Cliente cliente = new Cliente();
+        cliente.setId(1);
+        cliente.setNome("João Silva");
+
+        Endereco endereco1 = new Endereco();
+        endereco1.setId(100);
+        endereco1.setRua("Rua A");
+        endereco1.setNumero("123");
+        endereco1.setBairro("Bairro A");
+        endereco1.setCidade("Cidade A");
+        endereco1.setEstado("SP");
+        endereco1.setCep("12345-678");
+
+        Endereco endereco2 = new Endereco();
+        endereco2.setId(101);
+        endereco2.setRua("Rua B");
+        endereco2.setNumero("456");
+        endereco2.setBairro("Bairro B");
+        endereco2.setCidade("Cidade B");
+        endereco2.setEstado("RJ");
+        endereco2.setCep("98765-432");
+
+        List<Endereco> enderecos = new ArrayList<>();
+        enderecos.add(endereco1);
+        enderecos.add(endereco2);
+
+        cliente.setEnderecos(enderecos);
+
+        when(clienteRepositorio.findById(1)).thenReturn(Optional.of(cliente));
+
+        Cliente clienteComEnderecos = clienteServico.buscarClienteComEnderecos(1);
+
+        assertNotNull(clienteComEnderecos);
+        assertEquals("João Silva", clienteComEnderecos.getNome());
+        assertEquals(2, clienteComEnderecos.getEnderecos().size());
+
+        Endereco enderecoSalvo1 = clienteComEnderecos.getEnderecos().get(0);
+        Endereco enderecoSalvo2 = clienteComEnderecos.getEnderecos().get(1);
+
+        assertEquals("Rua A", enderecoSalvo1.getRua());
+        assertEquals("123", enderecoSalvo1.getNumero());
+        assertEquals("Bairro A", enderecoSalvo1.getBairro());
+        assertEquals("SP", enderecoSalvo1.getEstado());
+        assertEquals("12345-678", enderecoSalvo1.getCep());
+
+        assertEquals("Rua B", enderecoSalvo2.getRua());
+        assertEquals("456", enderecoSalvo2.getNumero());
+        assertEquals("Bairro B", enderecoSalvo2.getBairro());
+        assertEquals("RJ", enderecoSalvo2.getEstado());
+        assertEquals("98765-432", enderecoSalvo2.getCep());
+
+        verify(clienteRepositorio).findById(1);
+    }
+
     @Test
     void testEmailValido() {
         Cliente cliente = new Cliente();
