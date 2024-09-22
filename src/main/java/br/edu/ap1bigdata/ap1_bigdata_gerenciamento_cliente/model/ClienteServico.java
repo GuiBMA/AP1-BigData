@@ -19,9 +19,25 @@ public class ClienteServico {
     }
 
     public Cliente salvar(Cliente cliente) throws IllegalArgumentException {
-        if (cliente.getIdade() < 18) {
-            throw new IllegalArgumentException("O cliente é menor de idade e não pode ser cadastrado.");
+        Optional<Cliente> clienteExistentePorEmail = clienteRepositorio.findByEmail(cliente.getEmail());
+        if (clienteExistentePorEmail.isPresent()) {
+            throw new IllegalArgumentException("O email '" + cliente.getEmail() + "' já está em uso. Por favor, utilize um email diferente.");
         }
+
+        Optional<Cliente> clienteExistentePorCpf = clienteRepositorio.findByCpf(cliente.getCpf());
+        if (clienteExistentePorCpf.isPresent()) {
+            throw new IllegalArgumentException("O CPF '" + cliente.getCpf() + "' já está cadastrado. Verifique o CPF e tente novamente.");
+        }
+
+        Optional<Cliente> clienteExistentePorTelefone = clienteRepositorio.findByTelefone(cliente.getTelefone());
+        if (clienteExistentePorTelefone.isPresent()) {
+            throw new IllegalArgumentException("O telefone '" + cliente.getTelefone() + "' já está em uso. Informe um telefone diferente.");
+        }
+
+        if (cliente.getIdade() < 18) {
+            throw new IllegalArgumentException("O cliente é menor de idade (idade: " + cliente.getIdade() + " anos). Somente maiores de 18 anos podem ser cadastrados.");
+        }
+
         return clienteRepositorio.save(cliente);
     }
 
