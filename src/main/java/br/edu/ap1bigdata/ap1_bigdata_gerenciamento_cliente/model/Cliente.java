@@ -52,6 +52,13 @@ public class Cliente {
         return Period.between(this.dataNascimento, LocalDate.now()).getYears() >= 18;
     }
 
+    public int getIdade() {
+        if (this.dataNascimento == null) {
+            return 0; // Ou outro valor padrão caso data de nascimento não esteja definida
+        }
+        return Period.between(this.dataNascimento, LocalDate.now()).getYears();
+    }
+
     public int getId() {
         return id;
     }

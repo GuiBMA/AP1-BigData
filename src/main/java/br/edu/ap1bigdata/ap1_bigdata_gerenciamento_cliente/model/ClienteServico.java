@@ -8,21 +8,24 @@ import java.util.Optional;
 public class ClienteServico {
 
     @Autowired
-    private ClienteRepositorio clienteRepository;
+    private ClienteRepositorio clienteRepositorio;
 
     public List<Cliente> listarTodos() {
-        return clienteRepository.findAll();
+        return clienteRepositorio.findAll();
     }
 
     public Optional<Cliente> buscarPorId(int id) {
-        return clienteRepository.findById(id);
+        return clienteRepositorio.findById(id);
     }
 
-    public Cliente salvar(Cliente cliente) {
-        return clienteRepository.save(cliente);
+    public Cliente salvar(Cliente cliente) throws IllegalArgumentException {
+        if (cliente.getIdade() < 18) {
+            throw new IllegalArgumentException("O cliente é menor de idade e não pode ser cadastrado.");
+        }
+        return clienteRepositorio.save(cliente);
     }
 
     public void deletarPorId(int id) {
-        clienteRepository.deleteById(id);
+        clienteRepositorio.deleteById(id);
     }
 }

@@ -9,28 +9,28 @@ import java.util.List;
 public class ClienteControle {
 
     @Autowired
-    private ClienteServico clienteService;
+    private ClienteServico clienteServico;
 
     @GetMapping
     public List<Cliente> listarTodos() {
-        return clienteService.listarTodos();
+        return clienteServico.listarTodos();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Cliente> buscarPorId(@PathVariable int id) {
-        return clienteService.buscarPorId(id)
+        return clienteServico.buscarPorId(id)
             .map(cliente -> ResponseEntity.ok(cliente))
             .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping
     public Cliente salvar(@RequestBody Cliente cliente) {
-        return clienteService.salvar(cliente);
+        return clienteServico.salvar(cliente);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarPorId(@PathVariable int id) {
-        clienteService.deletarPorId(id);
+        clienteServico.deletarPorId(id);
         return ResponseEntity.noContent().build();
     }
 }
