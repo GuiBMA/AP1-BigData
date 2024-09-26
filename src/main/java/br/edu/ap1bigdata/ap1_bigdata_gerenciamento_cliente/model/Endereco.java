@@ -36,7 +36,7 @@ public class Endereco {
     private String estado;
 
     @ManyToOne
-    @JoinColumn(name = "cliente_id")
+    @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
     @NotBlank(message = "CEP é obrigatório")
