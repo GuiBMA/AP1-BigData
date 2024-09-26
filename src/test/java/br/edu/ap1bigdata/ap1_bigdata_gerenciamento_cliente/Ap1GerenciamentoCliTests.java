@@ -1,9 +1,8 @@
 package br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente;
+import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.Repositorio.ClienteRepositorio;
+import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.Servico.ClienteServico;
 import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.model.Cliente;
-import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.model.ClienteRepositorio;
-import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.model.ClienteServico;
 import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.model.Endereco;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -21,6 +20,8 @@ import java.util.Optional;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ class Ap1GerenciamentoCliTests {
 
     private final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
     private final Validator validator = factory.getValidator();
+    private Cliente cliente;
 
     @Mock
     private ClienteRepositorio clienteRepositorio;
@@ -37,27 +39,36 @@ class Ap1GerenciamentoCliTests {
     private ClienteServico clienteServico;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
-    }
 
-    @Test
-    void deveLancarExcecaoQuandoCpfDuplicado() {
-        Cliente cliente = new Cliente();
+        cliente = new Cliente();
         cliente.setNome("Carlos Almeida");
         cliente.setCpf("111.222.333-44");
         cliente.setEmail("carlos.almeida@example.com");
         cliente.setTelefone("(21) 99999-1234");
         cliente.setDataNascimento(LocalDate.of(1995, 8, 22));
+    }
 
+    @Test
+    public void deveLancarExcecaoQuandoCpfDuplicado() {
+        // Simular que o CPF já existe no banco de dados
         when(clienteRepositorio.findByCpf(cliente.getCpf())).thenReturn(Optional.of(cliente));
 
+        // Tentar salvar o cliente e esperar que a exceção seja lançada
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             clienteServico.salvar(cliente);
         });
 
+        // Verificar se a mensagem da exceção está correta
         assertEquals("O CPF '111.222.333-44' já está cadastrado. Verifique o CPF e tente novamente.", exception.getMessage());
+
+        // Verificar se o método findByCpf foi chamado no repositório
+        verify(clienteRepositorio, times(1)).findByCpf(cliente.getCpf());
+        // Verificar se o método save nunca foi chamado, pois a exceção foi lançada antes de salvar
+        verify(clienteRepositorio, never()).save(any(Cliente.class));
     }
+
 
     @Test
     void deveLancarExcecaoQuandoEmailDuplicado() {

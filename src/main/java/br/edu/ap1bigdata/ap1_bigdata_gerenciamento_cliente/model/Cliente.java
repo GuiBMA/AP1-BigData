@@ -45,7 +45,7 @@ public class Cliente {
     private String telefone;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
-    private List<Endereco> enderecos;
+    private static List<Endereco> enderecos;
     
     @AssertTrue(message = "O cliente deve ter pelo menos 18 anos")
     public boolean ehAdulto() {
@@ -54,7 +54,7 @@ public class Cliente {
 
     public int getIdade() {
         if (this.dataNascimento == null) {
-            return 0; // Ou outro valor padrão caso data de nascimento não esteja definida
+            return 0;
         }
         return Period.between(this.dataNascimento, LocalDate.now()).getYears();
     }
@@ -107,12 +107,12 @@ public class Cliente {
         this.telefone = telefone;
     }
     
-    public List<Endereco> getEnderecos() {
+    public static List<Endereco> getEnderecos() {
         return enderecos;
     }
     
     public void setEnderecos(List<Endereco> enderecos) {
-        this.enderecos = enderecos;
+        Cliente.enderecos = enderecos;
     }
     
 }
