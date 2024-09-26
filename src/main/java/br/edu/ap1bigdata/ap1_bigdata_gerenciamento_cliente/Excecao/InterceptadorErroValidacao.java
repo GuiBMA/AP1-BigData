@@ -9,20 +9,28 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ControllerAdvice
 public class InterceptadorErroValidacao {
-    @ExceptionHandler(MethodArgumentNotValidException.class)
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, IllegalArgumentException.class})
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    
-    public MsgErroValidacao validationErrorHandler(MethodArgumentNotValidException i) {
+    public MsgErroValidacao handleExceptions(Exception ex) {
         MsgErroValidacao response = new MsgErroValidacao();
 
-        for (FieldError item : i.getFieldErrors()) {
+        if (ex instanceof MethodArgumentNotValidException) {
+            MethodArgumentNotValidException validationException = (MethodArgumentNotValidException) ex;
+            for (FieldError item : validationException.getFieldErrors()) {
+                ErroValidacao error = new ErroValidacao();
+                error.setField(item.getField());
+                error.setMessage(item.getDefaultMessage());
+                response.getErrors().add(error);
+            }
+        } else if (ex instanceof IllegalArgumentException) {
             ErroValidacao error = new ErroValidacao();
-            error.setField(item.getField());
-            error.setMessage(item.getDefaultMessage());
+            error.setMessage(ex.getMessage());
             response.getErrors().add(error);
         }
 
         return response;
     }
 }
+

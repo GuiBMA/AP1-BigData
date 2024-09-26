@@ -6,9 +6,7 @@ import br.edu.ap1bigdata.ap1_bigdata_gerenciamento_cliente.model.Cliente;
 
 @Repository
 public interface ClienteRepositorio extends JpaRepository<Cliente, Integer> {
-    Optional<Cliente> findByEmail(String email);
-
     Optional<Cliente> findByCpf(String cpf);
-
+    Optional<Cliente> findByEmail(String email);
     Optional<Cliente> findByTelefone(String telefone);
 }
