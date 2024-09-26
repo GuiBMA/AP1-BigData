@@ -17,8 +17,6 @@ import java.time.Period;
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-
-
 @Entity
 public class Cliente {
 
@@ -46,6 +44,7 @@ public class Cliente {
     private LocalDate dataNascimento;
 
     @Pattern(regexp = "\\(\\d{2}\\) \\d{5}-\\d{4}", message = "O telefone deve seguir o padrão (XX) XXXXX-XXXX")
+    @Column(unique = true)
     private String telefone;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
