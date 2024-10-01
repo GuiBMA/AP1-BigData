@@ -43,7 +43,7 @@ public class EnderecoControle {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         
         Cliente cliente = optCliente.get();
-        Cliente.getEnderecos().add(endereco);
+        cliente.getEnderecos().add(endereco);
 
         this.enderecoRepositorio.save(endereco);
         this.clienteRepositorio.save(cliente);
